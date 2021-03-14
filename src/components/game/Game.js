@@ -32,6 +32,13 @@ class Game extends React.Component {
     };
   }
 
+  goToProfile(id){
+    this.props.history.push({
+      pathname: '/profile',
+      state: { id }
+    })
+  }
+
   logout() {
     localStorage.removeItem('token');
     this.props.history.push('/login');
@@ -66,7 +73,7 @@ class Game extends React.Component {
     return (
       <Container>
         <h2>Happy Coding! </h2>
-        <p>Get all users from secure end point:</p>
+        <p>Here is a list of all registered users from this build.</p>
         {!this.state.users ? (
           <Spinner />
         ) : (
@@ -74,7 +81,7 @@ class Game extends React.Component {
             <Users>
               {this.state.users.map(user => {
                 return (
-                  <PlayerContainer key={user.id}>
+                  <PlayerContainer key={user.id} onClick={() => this.goToProfile(user.id)}>
                     <Player user={user} />
                   </PlayerContainer>
                 );

@@ -65,7 +65,7 @@ const ButtonContainer = styled.div`
  * https://reactjs.org/docs/react-component.html
  * @Class
  */
-class Login extends React.Component {
+class Profile extends React.Component {
   /**
    * If you don’t initialize the state and you don’t bind methods, you don’t need to implement a constructor for your React component.
    * The constructor for a React component is called before it is mounted (rendered).
@@ -75,37 +75,19 @@ class Login extends React.Component {
   constructor() {
     super();
     this.state = {
-      password: null,
       username: null,
+      status: null,
+      name: null,
     };
   }
-  /**
-   * HTTP POST request is sent to the backend.
-   * If the request is successful, a new user is returned to the front-end
-   * and its token is stored in the localStorage.
-   */
-  async login() {
-    try {
-      const requestBody = JSON.stringify({
-        username: this.state.username,
-        password: this.state.password
-      });
-      const response = await api.post('/login', requestBody);
-      console.log(response);
 
-      // Get the returned user and update a new object.
-      const user = new User(response.data);
-
-      // Store the token into the local storage.
-      localStorage.setItem('token', user.token);
-
-      // Login successfully worked --> navigate to the route /game in the GameRouter
-      this.props.history.push(`/game`);
-    } catch (error) {
-      alert(`Something went wrong during the login: \n${handleError(error)}`);
-    }
+  goToProfile() {
+    this.props.history.push(`/game`);
   }
 
+  edit() {
+    this.props.history.push('/edit');
+  }
   /**
    *  Every time the user enters something in the input field, the state gets updated.
    * @param key (the key of the state for identifying the field that needs to be updated)
@@ -124,39 +106,51 @@ class Login extends React.Component {
    * You may call setState() immediately in componentDidMount().
    * It will trigger an extra rendering, but it will happen before the browser updates the screen.
    */
-  componentDidMount() {}
+  async componentDidMount() {
+    const id = this.props.location.state.id;
+    const response = await api.get('/users/' + id);
+    this.setState({
+      username: response.data.username,
+      name: response.data.name,
+      birthDay: response.data.birthDay,
+      status: response.data.status,
+      creationDate: response.data.creationDate
+    })
+  }
 
   render() {
     return (
       <BaseContainer>
         <FormContainer>
           <Form>
-            <Label>Username</Label>
-            <InputField
-              placeholder="Enter here.."
-              onChange={e => {
-                this.handleInputChange('username', e.target.value);
-              }}
-            />
-            <Label>Password</Label>
-            <InputField
-              placeholder="Enter here.."
-              onChange={e => {
-                this.handleInputChange('password', e.target.value);
-              }}
-            />
+            <Label>name</Label>
+            <Label>{this.state.name}</Label>
+            <Label>username</Label>
+            <Label>{this.state.username}</Label>
+            <Label>Birthday</Label>
+            <Label>{this.state.birthDay}</Label>
+            <Label>Creation Date</Label>
+            <Label>{this.state.creationDate}</Label>
+            <Label>Status</Label>
+            <Label>{this.state.status}</Label>
             <ButtonContainer>
               <Button
-                disabled={!this.state.username || !this.state.password}
                 width="50%"
                 onClick={() => {
-                  this.login();
+                  this.goToProfile();
                 }}
               >
-                Login
+                Game
+              </Button>
+              <Button
+                width="100%"
+                onClick={() => {
+                  this.edit();
+                }}
+              >
+                Edit
               </Button>
             </ButtonContainer>
-            <a href="/registration" style={{color: '#FCFFF7'}}>If you did not create an account yet, click this link :)!</a>
           </Form>
         </FormContainer>
       </BaseContainer>
@@ -168,4 +162,5 @@ class Login extends React.Component {
  * You can get access to the history object's properties via the withRouter.
  * withRouter will pass updated match, location, and history props to the wrapped component whenever it renders.
  */
-export default withRouter(Login);
+
+export default withRouter(Profile);

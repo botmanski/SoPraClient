@@ -65,7 +65,7 @@ const ButtonContainer = styled.div`
  * https://reactjs.org/docs/react-component.html
  * @Class
  */
-class Login extends React.Component {
+class Edit extends React.Component {
   /**
    * If you don’t initialize the state and you don’t bind methods, you don’t need to implement a constructor for your React component.
    * The constructor for a React component is called before it is mounted (rendered).
@@ -75,34 +75,37 @@ class Login extends React.Component {
   constructor() {
     super();
     this.state = {
-      password: null,
       username: null,
+      birthDay: null,
+      name: null,
+      id: null,
     };
+  }
+
+  goToProfile() {
+    this.props.history.push(`/game`);
   }
   /**
    * HTTP POST request is sent to the backend.
    * If the request is successful, a new user is returned to the front-end
    * and its token is stored in the localStorage.
    */
-  async login() {
+  async edit() {
     try {
       const requestBody = JSON.stringify({
+        name: this.state.name,
         username: this.state.username,
-        password: this.state.password
+        birthDay: this.state.birthDay
       });
-      const response = await api.post('/login', requestBody);
-      console.log(response);
-
-      // Get the returned user and update a new object.
-      const user = new User(response.data);
-
-      // Store the token into the local storage.
-      localStorage.setItem('token', user.token);
-
-      // Login successfully worked --> navigate to the route /game in the GameRouter
-      this.props.history.push(`/game`);
+      console.log(requestBody);
+      const id = this.state.id;
+      const response = await api.put('/users/' + id, requestBody);
+      this.props.history.push({
+        pathname: '/profile',
+        state: { id }
+      });
     } catch (error) {
-      alert(`Something went wrong during the login: \n${handleError(error)}`);
+      alert(`Something went wrong during the edit: \n${handleError(error)}`);
     }
   }
 
@@ -124,39 +127,66 @@ class Login extends React.Component {
    * You may call setState() immediately in componentDidMount().
    * It will trigger an extra rendering, but it will happen before the browser updates the screen.
    */
-  componentDidMount() {}
+  async componentDidMount() {
+    const token = localStorage.getItem("token");
+    const requestBody = JSON.stringify({
+      token: token
+    });
+    const response = await api.post('/token', requestBody);
+    console.log(response.data);
+    this.setState({
+      name: response.data.name,
+      username: response.data.username,
+      birthDay: response.data.birthDay,
+      id: response.data.id
+    })
+  }
 
   render() {
     return (
       <BaseContainer>
         <FormContainer>
           <Form>
-            <Label>Username</Label>
+            <Label>name</Label>
             <InputField
-              placeholder="Enter here.."
+              value={this.state.name}
+              onChange={e => {
+                this.handleInputChange('name', e.target.value);
+              }}
+            />
+            <Label>username</Label>
+            <InputField
+              value={this.state.username}
               onChange={e => {
                 this.handleInputChange('username', e.target.value);
               }}
             />
-            <Label>Password</Label>
+            <Label>Birthday</Label>
             <InputField
-              placeholder="Enter here.."
+              value={this.state.birthDay}
               onChange={e => {
-                this.handleInputChange('password', e.target.value);
+                this.handleInputChange('birthDay', e.target.value);
               }}
             />
             <ButtonContainer>
               <Button
-                disabled={!this.state.username || !this.state.password}
+                disabled={!this.state.username || !this.state.name || !this.state.birthDay}
                 width="50%"
                 onClick={() => {
-                  this.login();
+                  this.edit();
                 }}
               >
-                Login
+                Edit
+              </Button>
+              <Button
+                width="50%"
+                onClick={() => {
+                  this.goToProfile();
+                }}
+              >
+                Game
               </Button>
             </ButtonContainer>
-            <a href="/registration" style={{color: '#FCFFF7'}}>If you did not create an account yet, click this link :)!</a>
           </Form>
         </FormContainer>
       </BaseContainer>
@@ -168,4 +198,4 @@ class Login extends React.Component {
  * You can get access to the history object's properties via the withRouter.
  * withRouter will pass updated match, location, and history props to the wrapped component whenever it renders.
  */
-export default withRouter(Login);
+export default withRouter(Edit);
